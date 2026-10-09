@@ -1,8 +1,10 @@
 name: Release
 
+# Runs in the public mirror. Tags vX.Y.Z are pushed there from the monorepo.
+
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
 
 permissions:
   contents: write
@@ -19,27 +21,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install build dependencies
-        run: pip install -r scripts/requirements-build.txt
-
-      - name: Check metadata version matches release tag
+      - name: Check metadata version matches the tag
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.ref_name }}
         run: |
-          tag_version="${RELEASE_TAG#v}"
+          tag_version="${TAG#v}"
           metadata_version="$(grep '^version=' metadata.txt | cut -d= -f2)"
           if [ "$metadata_version" != "$tag_version" ]; then
-            echo "metadata.txt version ($metadata_version) does not match release tag ($tag_version)"
+            echo "metadata.txt version ($metadata_version) does not match tag ($TAG)"
             exit 1
           fi
 
-      - name: Build obfuscated plugin zip
+      - name: Build plugin zip
         run: python scripts/build_release.py --no-verify
 
-      - name: Upload zip to GitHub release
+      - name: Create GitHub release with the zip
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
-            dist/*.zip \
-            --clobber
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" dist/*.zip --title "$TAG" --notes "GridRadar QGIS plugin $TAG"

@@ -1,4 +1,4 @@
-"""OpenInfraMap MVT symbology constants (aligned with gispv-mvp frontend)."""
+"""OpenInfraMap MVT symbology constants (aligned with the GridRadar web app)."""
 
 from __future__ import annotations
 

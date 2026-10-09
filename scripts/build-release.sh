@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a protected release ZIP (obfuscated .py source, portable).
+# Build the release ZIP (plugin source, portable).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

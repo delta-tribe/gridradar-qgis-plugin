@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Build a protected GridRadar QGIS plugin release.
+"""Build the GridRadar QGIS plugin release ZIP.
 
-Default: obfuscated ``.py`` source via python-minifier — plain Python, one ZIP for
-all platforms and QGIS installs that support the plugin's syntax (3.10+).
+The ZIP holds the plugin source as is: one archive for every platform.
 
-    pip install -r scripts/requirements-build.txt
     ./scripts/build-release.sh
 """
 
@@ -22,6 +20,7 @@ PLUGIN_DIR_NAME = "gridradar_qgis_plugin"
 
 EXCLUDE_DIR_NAMES = {
     ".git",
+    ".github",
     ".vscode",
     "__pycache__",
     "scripts",
@@ -38,7 +37,6 @@ EXCLUDE_REL_PATHS = {
 
 EXCLUDE_FILE_NAMES = {
     ".gitignore",
-    "gispv-mvp.code-workspace",
     "requirements.txt",
     "README.md",
 }
@@ -111,36 +109,6 @@ def copy_plugin_tree(plugin_root: Path, destination: Path) -> int:
     return copied
 
 
-def obfuscate_tree(staging: Path) -> int:
-    try:
-        import python_minifier
-    except ImportError as exc:
-        raise SystemExit(
-            "python-minifier not installed.\n"
-            "  pip install -r scripts/requirements-build.txt"
-        ) from exc
-
-    count = 0
-    for py_file in staging.rglob("*.py"):
-        source = py_file.read_text(encoding="utf-8")
-        kwargs: dict = {
-            "rename_locals": True,
-            "rename_globals": False,
-            "remove_literal_statements": True,
-            "remove_annotations": True,
-            "combine_imports": True,
-            "hoist_literals": True,
-        }
-        if py_file.name == "__init__.py" and py_file.parent == staging:
-            kwargs["preserve_globals"] = ["classFactory"]
-        py_file.write_text(
-            python_minifier.minify(source, filename=str(py_file), **kwargs),
-            encoding="utf-8",
-        )
-        count += 1
-    return count
-
-
 def verify_import(staging_parent: Path, python_exe: str) -> None:
     code = """
 import sys
@@ -149,7 +117,7 @@ from gridradar_qgis_plugin import classFactory
 assert callable(classFactory)
 print("import ok")
 """ % str(staging_parent)
-    subprocess.run([python_exe, "-c", code], check=True)
+    subprocess.run([python_exe, "-B", "-c", code], check=True)
 
 
 def create_zip(staging: Path, zip_path: Path) -> None:
@@ -202,7 +170,6 @@ def main() -> None:
     print(f"staging: {staging}")
 
     copied = copy_plugin_tree(plugin_root, staging)
-    obfuscated = obfuscate_tree(staging)
 
     if not args.no_verify:
         verify_import(out_dir, qgis_python)
@@ -211,13 +178,9 @@ def main() -> None:
         create_zip(staging, zip_path)
 
     print("")
-    print(f"files copied:       {copied}")
-    print(f"obfuscated modules: {obfuscated}")
+    print(f"files copied: {copied}")
     if not args.no_zip:
-        print(f"release zip:        {zip_path}")
-    print("")
-    print("Portable obfuscated .py — same zip for Linux, Windows, macOS.")
-    print("Not bulletproof: a determined reader can still pretty-print and study it.")
+        print(f"release zip:  {zip_path}")
 
 
 if __name__ == "__main__":

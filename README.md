@@ -1,5 +1,7 @@
 # GridRadar QGIS Plugin
 
+> Questo repository è un mirror in sola lettura, generato automaticamente. Pull request e issue aperte qui non vengono lette: per segnalazioni scrivi al supporto GridRadar (contact@deltatribe.it).
+
 Plugin QGIS ufficiale per accedere al catalogo layer [GridRadar](https://gridradar.it) e all'integrazione **SINFI**.
 
 Il plugin **non include** il catalogo layer: dopo l'autenticazione scarica metadati e risolve le connessioni GIS on-demand dal backend GridRadar.
@@ -50,7 +52,7 @@ Per testare contro un backend in sviluppo, apri **Impostazioni avanzate** nel di
 Puoi anche avviare QGIS con un path plugin extra (utile in CI o profili isolati):
 
 ```bash
-QGIS_PLUGINPATH=/home/castelli/repos/gridradar_qgis_plugin qgis
+QGIS_PLUGINPATH=/percorso/del/repo qgis
 ```
 
 Con il symlink non serve: QGIS carica già la cartella dal profilo utente.
@@ -120,12 +122,9 @@ QGIS carica i plugin all'avvio, prima che Cursor faccia attach. I breakpoint sca
 | Attach OK, breakpoint grigi | Plugin Reloader dopo attach; verifica symlink `link-qgis-plugin.sh` |
 | Porta già in uso | `fuser -k 5678/tcp` e riavvia |
 
-## Build release (distribuzione protetta)
-
-Distribuire il plugin **senza sorgente leggibile**, con un unico ZIP valido su Linux, Windows e macOS:
+## Build release
 
 ```bash
-pip install -r scripts/requirements-build.txt
 ./scripts/build-release.sh
 ```
 
@@ -133,18 +132,10 @@ Output in `dist/`:
 
 | Artefatto | Contenuto |
 |---|---|
-| `gridradar_qgis_plugin/` | Plugin con `.py` offuscati (python-minifier) |
-| `gridradar_qgis_plugin-<versione>.zip` | Pacchetto per plugins.qgis.org o clienti |
+| `gridradar_qgis_plugin/` | Cartella del plugin pronta per QGIS |
+| `gridradar_qgis_plugin-<versione>.zip` | Pacchetto per plugins.qgis.org |
 
-Il build:
-
-1. Esclude file di sviluppo (`scripts/`, `.vscode/`, `core/debug.py`, …).
-2. Offusca ogni modulo: nomi locali abbreviati, docstring e annotazioni rimosse, codice compattato.
-3. Verifica che `classFactory` sia importabile (opzionale: `QGIS_PYTHON=/usr/bin/python3`).
-
-**Nessun runtime nativo**, nessun bytecode legato alla versione Python: resta codice `.py` normale, eseguibile da qualsiasi QGIS ≥ 3.40 con Python ≥ 3.10.
-
-Non è crittografia: chi vuole può ancora rileggere la logica, ma è molto più scomodo del sorgente originale. Per protezione più forte (con vincoli OS/Python) si può valutare PyArmor separatamente.
+Il build esclude i file di sviluppo (`scripts/`, `tests/`, `.vscode/`, `.github/`, `core/debug.py`, …) e verifica che `classFactory` sia importabile (opzionale: `QGIS_PYTHON=/usr/bin/python3`).
 
 ## Utilizzo
 
@@ -164,7 +155,7 @@ Non è crittografia: chi vuole può ancora rileggere la logica, ma è molto più
 | `core/sinfi/` | Whitelist layer SINFI, GetCapabilities, auth Basic via QgsAuthManager |
 | `gui/catalog_dock.py` | Albero catalogo, tab Selezioni e Disegni con ricerca e toggle |
 
-Il backend companion in `gispv-mvp` espone:
+Il backend GridRadar espone:
 
 - `GET /gis/catalog` — albero metadati (senza URL upstream)
 - `POST /gis/catalog/resolve` — descriptor connessione QGIS on-demand
@@ -178,12 +169,12 @@ Il backend companion in `gispv-mvp` espone:
 |---|---|---|
 | 1 | Login con credenziali valide | Dock catalogo visibile |
 | 2 | Login senza abbonamento | Errore 403 dal backend |
-| 3 | Toggle layer WMS (es. Campania) | Layer raster in gruppo `GridRadar · …` |
-| 4 | Toggle layer ArcGIS feature (es. Lombardia PPR) | Layer vettoriale valido |
-| 5 | Toggle layer ArcGIS image (es. Campania PUC) | Layer raster ArcGIS valido |
+| 3 | Toggle layer WMS | Layer raster in gruppo `GridRadar · …` |
+| 4 | Toggle layer ArcGIS feature | Layer vettoriale valido |
+| 5 | Toggle layer ArcGIS image | Layer raster ArcGIS valido |
 | 6 | Toggle layer MVT OpenInfraMap | Layer vector tile valido |
 | 7 | Toggle basemap XYZ | Sfondo raster Carto/Esri |
-| 8 | Layer SITAP / Vincoli in Rete (`requires_proxy`) | Richiesta via proxy autenticato |
+| 8 | Layer con `requires_proxy` | Richiesta via proxy autenticato |
 | 9 | Collegamento SINFI + toggle layer INFR_RT | WMS SINFI con stile selezionato |
 | 10 | Rimozione layer da legenda QGIS | Checkbox si deseleziona |
 | 11 | Esci dal plugin | Layer plugin rimossi, sessione cancellata |
@@ -202,28 +193,10 @@ QT_QPA_PLATFORM=offscreen /usr/bin/python3 -m unittest discover -s tests
 
 ## Pubblicazione su plugins.qgis.org
 
-1. Aggiorna `metadata.txt` (`version`, `changelog`) — la versione deve coincidere con il tag Git (`v0.2.4` → `version=0.2.4`).
-2. Crea una **GitHub Release** sul tag; il workflow `.github/workflows/release.yml` genera lo ZIP offuscato e lo allega automaticamente.
+1. Aggiorna `metadata.txt` (`version`, `changelog`).
+2. Crea il tag di release; il workflow `.github/workflows/release.yml` verifica che il tag (`v0.3.0` → `version=0.3.0`) coincida con `metadata.txt`, genera lo ZIP e lo allega a una GitHub Release.
 3. Scarica `gridradar_qgis_plugin-<versione>.zip` dalla release e caricalo su [plugins.qgis.org](https://plugins.qgis.org) come plugin sperimentale.
-
-Build locale (opzionale):
-
-```bash
-pip install -r scripts/requirements-build.txt
-./scripts/build-release.sh
-```
-
-## Backend companion (gispv-mvp)
-
-Dopo modifiche al catalogo frontend:
-
-```bash
-python backend/scripts/sync_catalog_order.py
-python backend/scripts/sync_proxy_rules.py
-```
-
-Il deploy backend deve includere `backend/gispv_backend/data/layers/` e `catalog_order.json`.
 
 ## Licenza
 
-Distribuito con il progetto GridRadar. Verificare i termini di servizio per l'uso commerciale del catalogo.
+GPL-2.0-or-later. Vedi `LICENSE`.

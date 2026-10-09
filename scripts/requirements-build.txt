@@ -1,3 +1,0 @@
-# Build-time only (any Python 3.10+).
-#   pip install -r scripts/requirements-build.txt
-python-minifier>=2.9

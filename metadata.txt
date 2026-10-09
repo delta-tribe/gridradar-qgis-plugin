@@ -10,8 +10,8 @@ requiredPackages=requests>=2.25.0
 
 about=Plugin ufficiale GridRadar per QGIS. Richiede un account GridRadar con abbonamento attivo. Il catalogo layer viene caricato dal server dopo l'autenticazione; le connessioni ai servizi GIS vengono risolte on-demand. I disegni salvati in GridRadar sono disponibili nel pannello Disegni. Include integrazione SINFI con credenziali personali.
 
-tracker=https://github.com/deltatribe/gridradar_qgis_plugin/issues
-repository=https://github.com/deltatribe/gridradar_qgis_plugin
+tracker=https://gridradar.it
+repository=https://github.com/delta-tribe/gridradar_qgis_plugin
 hasProcessingProvider=no
 changelog=0.2.4 Fix deselezione immediata layer sotto selezione (stato parziale parent)
     0.2.3 Layer singoli attivabili sotto ogni selezione salvata
