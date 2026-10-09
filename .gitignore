@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+.build-venv/
+dist/
+build/
+*.zip
+pyarmor.bug.log

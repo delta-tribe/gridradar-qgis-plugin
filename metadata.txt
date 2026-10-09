@@ -1,0 +1,28 @@
+[general]
+name=GridRadar
+qgisMinimumVersion=3.40.0
+qgisMaximumVersion=3.99.99
+description=Accedi al catalogo layer GridRadar, ai disegni e a SINFI da QGIS
+version=0.2.4
+author=Delta Tribe
+email=contact@deltatribe.it
+requiredPackages=requests>=2.25.0
+
+about=Plugin ufficiale GridRadar per QGIS. Richiede un account GridRadar con abbonamento attivo. Il catalogo layer viene caricato dal server dopo l'autenticazione; le connessioni ai servizi GIS vengono risolte on-demand. I disegni salvati in GridRadar sono disponibili nel pannello Disegni. Include integrazione SINFI con credenziali personali.
+
+tracker=https://github.com/deltatribe/gridradar_qgis_plugin/issues
+repository=https://github.com/deltatribe/gridradar_qgis_plugin
+hasProcessingProvider=no
+changelog=0.2.4 Fix deselezione immediata layer sotto selezione (stato parziale parent)
+    0.2.3 Layer singoli attivabili sotto ogni selezione salvata
+    0.2.2 Import selezioni layer salvate (tab Selezioni)
+    0.2.1 Import raccolte disegni con checkbox (tutte le tracce)
+    0.2.0 Disegni GridRadar sincronizzati da /map-drawings
+    0.1.0 Prima release sperimentale
+tags=python,gridradar,gis,wms,sinfi
+homepage=https://gridradar.it
+category=Web
+icon=icon.png
+experimental=True
+deprecated=False
+server=False
